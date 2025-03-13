@@ -28,33 +28,8 @@ func main() {
 				return
 			}
 
-			// handle the connection in a goroutine, so we can handle multiple connections at the same time
-			go func(connection net.Conn) {
-				defer func() { _ = connection.Close() }()
-				remoteAddress := connection.RemoteAddr().String()
-
-				fmt.Printf("New connection from: %s\n", remoteAddress)
-
-				// create buffer to store the message
-				buffer := make([]byte, 1024)
-
-				// keep listening for messages until the connection is stopped (usually due to an EOF when the client disconnects)
-				for {
-					// n is the length of the message
-					n, err := connection.Read(buffer)
-					if err != nil {
-						if err != io.EOF {
-							log.Printf("Read error: %v", err)
-						}
-						fmt.Printf("Connection from %s is closed", remoteAddress)
-						return
-					}
-
-					// only grab the actual message
-					message := string(buffer[:n])
-					fmt.Printf("Message recieved from %s: %s\n", remoteAddress, message)
-				}
-			}(connection)
+			// handle the connection in a goroutine, so we can have multiple connections at the same time
+			go handleConnection(connection)
 		}
 	}()
 
@@ -71,4 +46,31 @@ func main() {
 	_ = listener.Close()
 
 	fmt.Println("Shutdown complete")
+}
+
+func handleConnection(connection net.Conn) {
+	defer func() { _ = connection.Close() }()
+	remoteAddress := connection.RemoteAddr().String()
+
+	fmt.Printf("New connection from: %s\n", remoteAddress)
+
+	// create buffer to store the message
+	buffer := make([]byte, 1024)
+
+	// keep listening for messages until the connection is stopped (usually due to an EOF when the client disconnects)
+	for {
+		// n is the length of the message
+		n, err := connection.Read(buffer)
+		if err != nil {
+			if err != io.EOF {
+				log.Printf("Read error: %v", err)
+			}
+			fmt.Printf("Connection from %s is closed", remoteAddress)
+			return
+		}
+
+		// only grab the actual message
+		message := string(buffer[:n])
+		fmt.Printf("Message recieved from %s: %s\n", remoteAddress, message)
+	}
 }
