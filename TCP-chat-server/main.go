@@ -30,7 +30,7 @@ type Chatroom struct {
 	messages   chan string
 }
 
-func (c Chatroom) StartChatroom() {
+func (c *Chatroom) StartChatroom() {
 	for {
 		select {
 		case user := <-c.addUser:
@@ -39,8 +39,12 @@ func (c Chatroom) StartChatroom() {
 
 		case user := <-c.removeUser:
 			delete(c.users, user)
-			_ = user.connection.Close()
+			close(user.incomingMessages)
 			fmt.Printf("Removed user: %s\n", user.username)
+
+			for otherUser := range c.users {
+				otherUser.incomingMessages <- user.username + " has left"
+			}
 
 		case message := <-c.messages:
 			fmt.Printf("A message was sent: %s\n", message)
@@ -114,12 +118,15 @@ func sendMessages(user *User, chatroom *Chatroom) {
 	reader := bufio.NewReader(user.connection)
 
 	// The first message a user sends is their username
+	user.incomingMessages <- "Enter username: "
 	username, err := reader.ReadString('\n')
 	if err != nil {
 		log.Printf("Error reading username: %v\n", err)
 	} else {
 		user.username = username[:len(username)-1]
 	}
+
+	chatroom.messages <- user.username + " has joined"
 
 	for {
 		message, err := reader.ReadString('\n')
