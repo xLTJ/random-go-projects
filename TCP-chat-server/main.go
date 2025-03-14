@@ -10,13 +10,6 @@ import (
 	"syscall"
 )
 
-// What we need:
-// - Chatroom and user type
-// - setup TCP connection and such
-// - Run the chatroom so it can handle adding + removing users, and users sending messages
-// - Have a loop to listen for new connections, each new connection is a new user.
-// - Handle each user when they join. Add them to the chatroom, and make sure that they can read and write messages.
-
 type User struct {
 	username         string
 	connection       net.Conn
