@@ -8,7 +8,9 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 )
 
@@ -110,7 +112,7 @@ func (c Client) handleCommand(command Command) error {
 }
 
 func (c Client) handleFileUpload(filename string, fileSize int) error {
-	file, err := os.Create(fmt.Sprintf("%s/%s", fileDirectory, filename))
+	file, err := os.Create(filepath.Join(fileDirectory, filename))
 	if err != nil {
 		return err
 	}
@@ -143,16 +145,22 @@ func (c Client) handleFileUpload(filename string, fileSize int) error {
 }
 
 func (c Client) handleFileDownload(filename string) error {
-	file, err := os.Open(fmt.Sprintf("%s/%s", fileDirectory, filename))
+	if !isPathSafe(filename) {
+		pathError := fmt.Errorf("requested file outside of allowed path")
+		c.sendError(pathError)
+		return pathError
+	}
+
+	file, err := os.Open(filepath.Join(fileDirectory, filename))
 	if err != nil {
-		_, _ = fmt.Fprintf(c.connection, "Error: %s", err)
+		c.sendError(err)
 		return err
 	}
 	defer func() { _ = file.Close() }()
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		_, _ = fmt.Fprintf(c.connection, "Error: %s", err)
+		c.sendError(err)
 		return err
 	}
 
@@ -184,4 +192,26 @@ func (c Client) handleFileDownload(filename string) error {
 
 	fmt.Println("Finished sending file")
 	return nil
+}
+
+// sendError sends an error to the client
+func (c Client) sendError(err error) {
+	_, _ = fmt.Fprintf(c.connection, "Error: %v", err)
+}
+
+// isPathSafe checks if a path is inside the allowed path. This prevents the client to access files outside the intended
+// path
+func isPathSafe(path string) bool {
+	fullPath := filepath.Join(fileDirectory, path)
+	absPath, err := filepath.Abs(fullPath)
+	if err != nil {
+		return false
+	}
+
+	absBasePath, err := filepath.Abs(fileDirectory)
+	if err != nil {
+		return false
+	}
+
+	return strings.HasPrefix(absPath, absBasePath)
 }

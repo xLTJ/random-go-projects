@@ -83,7 +83,7 @@ func (c ServerConnection) handleCommand(command Command) error {
 }
 
 func (c ServerConnection) uploadFile(filename string) error {
-	file, err := os.Open(fmt.Sprintf("%s/%s", fileDirectory, filename))
+	file, err := os.Open(filepath.Join(fileDirectory, filename))
 	if err != nil {
 		return err
 	}
@@ -152,7 +152,7 @@ func (c ServerConnection) downloadFile(filename string) error {
 	fmt.Printf("File size: %d\n", fileSize)
 	bytesTotal := 0
 
-	file, err := os.Create(fmt.Sprintf("%s/%s", fileDirectory, filename))
+	file, err := os.Create(filepath.Join(fileDirectory, filename))
 	defer func() { _ = file.Close() }()
 	for bytesTotal < fileSize {
 		bytesRead, err = c.connection.Read(buffer)
