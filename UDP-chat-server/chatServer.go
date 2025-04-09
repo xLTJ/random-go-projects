@@ -132,6 +132,7 @@ func handleMessages(listener *net.UDPConn, chatroom Chatroom) {
 
 		case strings.HasPrefix(message, "!Disconnect"):
 			chatroom.removeUser <- chatroom.users[remoteAddr.String()]
+			continue
 		}
 
 		chatroom.messages <- Message{
