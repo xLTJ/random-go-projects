@@ -26,6 +26,7 @@ func StartClient() {
 	defer func() { _ = connection.Close() }()
 
 	fmt.Println("Connected to server")
+	fmt.Printf("type %s for help\n", CmdHelp)
 
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
@@ -55,6 +56,9 @@ func StartClient() {
 
 func (c ServerConnection) handleCommand(command Command) error {
 	switch command.command {
+	case CmdHelp:
+		showHelp()
+
 	case CmdUpload:
 		if len(command.arguments) != 1 {
 			return fmt.Errorf("%s command can have exactly 1 argument", CmdUpload)
@@ -71,6 +75,12 @@ func (c ServerConnection) handleCommand(command Command) error {
 		}
 
 		err := c.downloadFile(command.arguments[0])
+		if err != nil {
+			return err
+		}
+
+	case CmdList:
+		err := c.listFiles()
 		if err != nil {
 			return err
 		}
@@ -99,7 +109,7 @@ func (c ServerConnection) uploadFile(filename string) error {
 		return err
 	}
 
-	buffer := make([]byte, 4096)
+	buffer := make([]byte, 8192)
 	bytesTotal := 0
 
 	for {
@@ -131,7 +141,7 @@ func (c ServerConnection) downloadFile(filename string) error {
 		return err
 	}
 
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, 8192)
 	bytesRead, err := c.connection.Read(buffer)
 	if err != nil {
 		if err == io.EOF {
@@ -174,4 +184,60 @@ func (c ServerConnection) downloadFile(filename string) error {
 
 	fmt.Printf("Finished downloading %s !!", filename)
 	return nil
+}
+
+func (c ServerConnection) listFiles() error {
+	_, err := fmt.Fprintf(c.connection, "%s\n", CmdList)
+	if err != nil {
+		return err
+	}
+
+	reader := bufio.NewReader(c.connection)
+	statusMessage, err := reader.ReadString('\n')
+	if err != nil {
+		if err == io.EOF {
+			return nil
+		}
+		return err
+	}
+
+	if strings.HasPrefix(statusMessage, "Error") {
+		return fmt.Errorf(statusMessage)
+	}
+
+	fileCount, err := strconv.Atoi(strings.TrimSpace(statusMessage))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Files on server:")
+	fmt.Println("----------------")
+	for i := 0; i < fileCount; i++ {
+		fileInfo, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
+
+		parts := strings.Split(fileInfo, "|")
+		if len(parts) != 3 {
+			continue
+		}
+
+		fileName := parts[0]
+		fileSize, _ := strconv.Atoi(parts[1])
+		isDir, _ := strconv.ParseBool(parts[2])
+
+		if isDir {
+			fmt.Printf("[DIR] %s\n", fileName)
+		} else {
+			fmt.Printf("%s (%d bytes)\n", fileName, fileSize)
+		}
+	}
+
+	return nil
+}
+
+func showHelp() {
+	fmt.Printf("Upload file: %s file\n", CmdUpload)
+	fmt.Printf("Download file: %s file\n", CmdDownload)
 }

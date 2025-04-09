@@ -13,7 +13,8 @@ type Command struct {
 const (
 	CmdUpload   = "UPLOAD"
 	CmdDownload = "GET"
-	CmdHelp     = "HELP"
+	CmdList     = "LIST"
+	CmdHelp     = "HELP" // client side only
 )
 
 const fileDirectory = "files"

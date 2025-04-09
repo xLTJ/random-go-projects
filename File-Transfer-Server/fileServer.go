@@ -62,6 +62,8 @@ func (c Client) handleClient() {
 			break
 		}
 
+		fmt.Printf("Recieved input: %s\n", input)
+
 		command, err := parseCommand(input)
 		if err != nil {
 			break
@@ -104,6 +106,13 @@ func (c Client) handleCommand(command Command) error {
 			return err
 		}
 
+	case CmdList:
+		fmt.Printf("Executing %s\n", CmdList)
+		err := c.handleListFiles()
+		if err != nil {
+			return err
+		}
+
 	default:
 		return fmt.Errorf("Unknown command: %s\n", command.command)
 	}
@@ -118,7 +127,7 @@ func (c Client) handleFileUpload(filename string, fileSize int) error {
 	}
 	defer func() { _ = file.Close() }()
 
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, 8192)
 	bytesTotal := 0
 
 	fmt.Printf("Started writing to: %s...\n", filename)
@@ -140,7 +149,7 @@ func (c Client) handleFileUpload(filename string, fileSize int) error {
 		fmt.Printf("Writing to file... %d/%d bytes (%.2f%%)\n", bytesTotal, fileSize, float64(bytesTotal)/float64(fileSize)*100)
 	}
 
-	fmt.Printf("Finished writing to: %s", filename)
+	fmt.Printf("Finished writing to: %s\n", filename)
 	return nil
 }
 
@@ -164,12 +173,14 @@ func (c Client) handleFileDownload(filename string) error {
 		return err
 	}
 
+	fmt.Printf("Started sending: %s...\n", filename)
+
 	_, err = fmt.Fprintf(c.connection, "%d\n", fileInfo.Size())
 	if err != nil {
 		return err
 	}
 
-	buffer := make([]byte, 4096)
+	buffer := make([]byte, 8192)
 	bytesTotal := 0
 
 	for {
@@ -191,6 +202,43 @@ func (c Client) handleFileDownload(filename string) error {
 	}
 
 	fmt.Println("Finished sending file")
+	return nil
+}
+
+func (c Client) handleListFiles() error {
+	files, err := os.ReadDir(fileDirectory)
+	if err != nil {
+		c.sendError(err)
+		return err
+	}
+
+	fmt.Printf("Sending file count... (%d)\n", len(files))
+
+	_, err = fmt.Fprintf(c.connection, "%d\n", len(files))
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Sending file list...")
+
+	for _, file := range files {
+		info, err := file.Info()
+		if err != nil {
+			_, err = fmt.Fprintf(c.connection, "%s|nil|nil\n", file.Name())
+			if err != nil {
+				return err
+			}
+			continue
+		}
+
+		_, err = fmt.Fprintf(c.connection, "%s|%d|%t\n", file.Name(), info.Size(), file.IsDir())
+		if err != nil {
+			return err
+		}
+	}
+
+	fmt.Println("Finished listing files")
+
 	return nil
 }
 
