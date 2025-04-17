@@ -15,7 +15,8 @@ import (
 )
 
 type ServerConnection struct {
-	connection net.Conn
+	connection    net.Conn
+	currentFolder string
 }
 
 func StartClient() {
@@ -30,7 +31,7 @@ func StartClient() {
 
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)
-		serverConnection := ServerConnection{connection: connection}
+		serverConnection := ServerConnection{connection: connection, currentFolder: ""}
 		for scanner.Scan() {
 			command, err := parseCommand(scanner.Text())
 			if err != nil {
@@ -104,7 +105,7 @@ func (c ServerConnection) uploadFile(filename string) error {
 		return err
 	}
 
-	_, err = fmt.Fprintf(c.connection, "%s %s %d\n", CmdUpload, filepath.Base(filename), fileInfo.Size())
+	_, err = fmt.Fprintf(c.connection, "%s %s%s %d\n", CmdUpload, c.currentFolder, filepath.Base(filename), fileInfo.Size())
 	if err != nil {
 		return err
 	}
@@ -136,7 +137,7 @@ func (c ServerConnection) uploadFile(filename string) error {
 
 func (c ServerConnection) downloadFile(filename string) error {
 	fmt.Printf("Starting download of: %s...\n", filename)
-	_, err := fmt.Fprintf(c.connection, "%s %s\n", CmdDownload, filename)
+	_, err := fmt.Fprintf(c.connection, "%s %s%s\n", CmdDownload, c.currentFolder, filename)
 	if err != nil {
 		return err
 	}
@@ -187,7 +188,7 @@ func (c ServerConnection) downloadFile(filename string) error {
 }
 
 func (c ServerConnection) listFiles() error {
-	_, err := fmt.Fprintf(c.connection, "%s\n", CmdList)
+	_, err := fmt.Fprintf(c.connection, "%s %s\n", CmdList, c.currentFolder)
 	if err != nil {
 		return err
 	}
@@ -235,6 +236,10 @@ func (c ServerConnection) listFiles() error {
 	}
 
 	return nil
+}
+
+func (c ServerConnection) changeCurrentFolder() {
+
 }
 
 func showHelp() {
