@@ -59,6 +59,22 @@ This is primarily for me personally so i know where to look for stuff if i need 
 
 - [File-Transfer-Server](./File-Transfer-Server/) - (Depth: Basic)
 
+### Cryptography
+*Projects implementing cryptographic algorithms or techniques.*
+
+#### Classical Ciphers
+*Implementation of historical ciphers like Caesar, Vigenere, etc.*
+
+- [Caesar-Cipher-Tool](./Caesar-Cipher-Tool/) - (Depth: Basic)
+
+### Command-Line Interface (CLI)
+*Projects primarily focused on providing a command-line interface.*
+
+#### Command/Flag Parsing
+*Parsing command-line arguments, flags, and subcommands.*
+
+- [Caesar-Cipher-Tool](./Caesar-Cipher-Tool/) - (Depth: Intermediate)
+
 ## Go-Specific Concepts
 
 ### Concurrency
@@ -101,3 +117,16 @@ This is primarily for me personally so i know where to look for stuff if i need 
 *Using buffered I/O (`bufio` package) for efficiency.*
 
 - [File-Transfer-Server](./File-Transfer-Server/) - (Depth: Basic)
+
+#### Stdin/Stdout Handling
+*Reading from standard input and writing to standard output.*
+
+- [Caesar-Cipher-Tool](./Caesar-Cipher-Tool/) - (Depth: Basic)
+
+### External Libraries
+*Projects demonstrating usage of specific third-party Go libraries.*
+
+#### Cobra
+*Using the Cobra library for building CLI applications.*
+
+- [Caesar-Cipher-Tool](./Caesar-Cipher-Tool/) - (Depth: Intermediate)
