@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"log"
 )
 
 // setCmd is used to set config values
@@ -13,9 +12,10 @@ var setCmd = &cobra.Command{
 	Short: "Set variables used by the CLI",
 	Long:  "Example: metasploit-thingy set --password Abscission616F33 --host 10.10.1.6 --port 55552",
 	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		flagToConfigMap := map[string]string{
 			"password": "msgrpc.password",
+			"username": "msgrpc.username",
 			"host":     "msgrpc.host",
 			"port":     "msgrpc.port",
 		}
@@ -33,18 +33,20 @@ var setCmd = &cobra.Command{
 
 		if !changedConfig {
 			fmt.Println("No config values provided")
-			return
+			return nil
 		}
 
 		if err := viper.WriteConfig(); err != nil {
-			log.Panic("\nFailed to write to config :c")
+			return fmt.Errorf("failed to write to config: %v", err)
 		}
 		fmt.Println("\nConfig successfully updated")
+		return nil
 	},
 }
 
 func init() {
 	setCmd.Flags().String("password", "", "Set password")
+	setCmd.Flags().String("username", "", "Set username")
 	setCmd.Flags().String("host", "", "Set host")
 	setCmd.Flags().String("port", "", "Set port")
 	rootCmd.AddCommand(setCmd)

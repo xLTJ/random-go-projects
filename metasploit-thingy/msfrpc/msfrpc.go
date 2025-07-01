@@ -16,12 +16,20 @@ type Client struct {
 	token    string
 }
 
-func NewClient(host, username, password, token string) Client {
-	return Client{
+func NewClient(host, username, password string) (Client, error) {
+	client := Client{
 		host:     host,
 		username: username,
 		password: password,
 	}
+
+	token, err := client.Login()
+	if err != nil {
+		return Client{}, err
+	}
+
+	client.token = token
+	return client, nil
 }
 
 // Send sends a request in messagepack form, and returns the response

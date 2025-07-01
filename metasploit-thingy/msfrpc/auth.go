@@ -25,7 +25,7 @@ type logoutResp struct {
 	Result string `msgpack:"result"`
 }
 
-func (c Client) Login() error {
+func (c Client) Login() (string, error) {
 	req := loginReq{
 		Method:   "auth.login",
 		Username: c.username,
@@ -35,11 +35,10 @@ func (c Client) Login() error {
 	var resp loginResp
 	err := c.Send(req, &resp)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	c.token = resp.Token
-	return nil
+	return resp.Token, nil
 }
 
 func (c Client) Logout() error {

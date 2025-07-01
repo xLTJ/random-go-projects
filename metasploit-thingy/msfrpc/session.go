@@ -1,5 +1,7 @@
 package msfrpc
 
+import "fmt"
+
 type sessionListReq struct {
 	_msgpack struct{} `msgpack:",asArray"`
 	Method   string
@@ -17,7 +19,7 @@ type sessionListResp struct {
 	Info        string `msgpack:"info"`
 	Workspace   string `msgpack:"workspace"`
 	SessionHost string `msgpack:"session_host"`
-	SessionPort string `msgpack:"session_port"`
+	SessionPort int    `msgpack:"session_port"`
 	Username    string `msgpack:"username"`
 	UUID        string `msgpack:"uuid"`
 	ExploitUUID string `msgpack:"exploit_uuid"`
@@ -32,9 +34,10 @@ func (c Client) SessionList() (map[int]sessionListResp, error) {
 	resp := make(map[int]sessionListResp)
 	err := c.Send(req, &resp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting sessionlist: %v", err)
 	}
 
+	// flatten map
 	for id, session := range resp {
 		session.ID = id
 		resp[id] = session
