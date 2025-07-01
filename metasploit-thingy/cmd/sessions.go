@@ -14,10 +14,11 @@ var sessionsCmd = &cobra.Command{
 	Short: "Get a list of current sessions",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		host := fmt.Sprintf("%s:%s", viper.GetString("msgrpc.host"), viper.GetString("msgrpc.port"))
+		host := viper.GetString("msgrpc.host")
+		port := viper.GetString("msgrpc.port")
 		username := viper.GetString("msgrpc.username")
 		password := viper.GetString("msgrpc.password")
-		msfrpcClient, err := msfrpc.NewClient(host, username, password)
+		msfrpcClient, err := msfrpc.NewClient(host, port, username, password)
 		if err != nil {
 			return err
 		}

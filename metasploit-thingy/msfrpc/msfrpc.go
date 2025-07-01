@@ -11,14 +11,20 @@ import (
 
 type Client struct {
 	host     string
+	port     string
 	username string
 	password string
 	token    string
 }
 
-func NewClient(host, username, password string) (Client, error) {
+func NewClient(host, port, username, password string) (Client, error) {
+	if len(host) == 0 || len(port) == 0 || len(username) == 0 || len(password) == 0 {
+		return Client{}, fmt.Errorf("missing one or more values. make sure the following are set:\n    host, port, username, password\n")
+	}
+
 	client := Client{
 		host:     host,
+		port:     port,
 		username: username,
 		password: password,
 	}
@@ -42,7 +48,7 @@ func (c Client) Send(req, resp interface{}) error {
 		return err
 	}
 
-	dest := fmt.Sprintf("http://%s/api", c.host)
+	dest := fmt.Sprintf("http://%s:%s/api", c.host, c.port)
 	httpResp, err := http.Post(dest, "binary/message-pack", buf)
 	if err != nil {
 		return err

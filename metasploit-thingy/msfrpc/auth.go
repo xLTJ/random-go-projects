@@ -1,5 +1,7 @@
 package msfrpc
 
+import "fmt"
+
 type loginReq struct {
 	_msgpack struct{} `msgpack:",asArray"`
 	Method   string
@@ -35,7 +37,11 @@ func (c Client) Login() (string, error) {
 	var resp loginResp
 	err := c.Send(req, &resp)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("Error sending login request: %v\n", err)
+	}
+
+	if resp.Error {
+		return "", fmt.Errorf("Error logging in (probably invalid credentials): %v\n", resp.ErrorClass)
 	}
 
 	return resp.Token, nil
