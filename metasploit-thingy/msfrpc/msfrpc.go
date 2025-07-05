@@ -3,6 +3,7 @@ package msfrpc
 import (
 	"bytes"
 	"fmt"
+	"github.com/spf13/viper"
 	"github.com/vmihailenco/msgpack/v5"
 	"net/http"
 )
@@ -17,7 +18,12 @@ type Client struct {
 	token    string
 }
 
-func NewClient(host, port, username, password string) (Client, error) {
+func NewClient() (Client, error) {
+	host := viper.GetString("msgrpc.host")
+	port := viper.GetString("msgrpc.port")
+	username := viper.GetString("msgrpc.username")
+	password := viper.GetString("msgrpc.password")
+
 	if len(host) == 0 || len(port) == 0 || len(username) == 0 || len(password) == 0 {
 		return Client{}, fmt.Errorf("missing one or more values. make sure the following are set:\n    host, port, username, password\n")
 	}

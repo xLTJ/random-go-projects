@@ -42,5 +42,4 @@ func init() {
 	setCmd.Flags().String("host", "", "Set host")
 	setCmd.Flags().String("port", "", "Set port")
 	setCmd.MarkFlagsOneRequired("password", "username", "host", "port")
-	rootCmd.AddCommand(setCmd)
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"metasploit-thingy/cmd/session"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -28,6 +29,9 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
+	rootCmd.AddCommand(setCmd)
+	rootCmd.AddCommand(sessionsCmd)
+	rootCmd.AddCommand(session.SessionCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.

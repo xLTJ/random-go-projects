@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cheynewallace/tabby"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"metasploit-thingy/msfrpc"
 	"os"
 )
@@ -14,11 +13,7 @@ var sessionsCmd = &cobra.Command{
 	Short: "Get a list of current sessions",
 	Args:  cobra.NoArgs,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		host := viper.GetString("msgrpc.host")
-		port := viper.GetString("msgrpc.port")
-		username := viper.GetString("msgrpc.username")
-		password := viper.GetString("msgrpc.password")
-		msfrpcClient, err := msfrpc.NewClient(host, port, username, password)
+		msfrpcClient, err := msfrpc.NewClient()
 		if err != nil {
 			return err
 		}
@@ -50,8 +45,4 @@ var sessionsCmd = &cobra.Command{
 		table.Print()
 		return nil
 	},
-}
-
-func init() {
-	rootCmd.AddCommand(sessionsCmd)
 }

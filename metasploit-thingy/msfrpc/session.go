@@ -8,7 +8,7 @@ type sessionListReq struct {
 	Token    string
 }
 
-type sessionListResp struct {
+type SessionListResp struct {
 	ID          int    `msgpack:",omitempty"`
 	Type        string `msgpack:"type"`
 	TunnelLocal string `msgpack:"tunnel_local"`
@@ -25,13 +25,13 @@ type sessionListResp struct {
 	ExploitUUID string `msgpack:"exploit_uuid"`
 }
 
-func (c Client) SessionList() (map[int]sessionListResp, error) {
+func (c Client) SessionList() (map[int]SessionListResp, error) {
 	req := sessionListReq{
 		Method: "session.list",
 		Token:  c.token,
 	}
 
-	resp := make(map[int]sessionListResp)
+	resp := make(map[int]SessionListResp)
 	err := c.Send(req, &resp)
 	if err != nil {
 		return nil, fmt.Errorf("error getting sessionlist: %v", err)
