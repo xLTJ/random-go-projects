@@ -18,6 +18,12 @@ type Client struct {
 	token    string
 }
 
+type errorResp struct {
+	Error        bool   `msgpack:"error"`
+	ErrorClass   string `msgpack:"error_class"`
+	ErrorMessage string `msgpack:"error_message"`
+}
+
 func NewClient() (Client, error) {
 	host := viper.GetString("msgrpc.host")
 	port := viper.GetString("msgrpc.port")

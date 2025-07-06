@@ -1,6 +1,9 @@
 package msfrpc
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type sessionListReq struct {
 	_msgpack struct{} `msgpack:",asArray"`
@@ -25,6 +28,18 @@ type SessionListResp struct {
 	ExploitUUID string `msgpack:"exploit_uuid"`
 }
 
+type sessionKillReq struct {
+	_msgpack  struct{} `msgpack:",asArray"`
+	Method    string
+	Token     string
+	SessionID string
+}
+
+type sessionKillResp struct {
+	Result string `msgpack:"result"`
+	errorResp
+}
+
 func (c Client) SessionList() (map[int]SessionListResp, error) {
 	req := sessionListReq{
 		Method: "session.list",
@@ -34,7 +49,7 @@ func (c Client) SessionList() (map[int]SessionListResp, error) {
 	resp := make(map[int]SessionListResp)
 	err := c.Send(req, &resp)
 	if err != nil {
-		return nil, fmt.Errorf("error getting sessionlist: %v", err)
+		return nil, fmt.Errorf("error sending request: %v", err)
 	}
 
 	// flatten map
@@ -43,4 +58,24 @@ func (c Client) SessionList() (map[int]SessionListResp, error) {
 		resp[id] = session
 	}
 	return resp, nil
+}
+
+func (c Client) KillSession(id int) error {
+	req := sessionKillReq{
+		Method:    "session.stop",
+		Token:     c.token,
+		SessionID: strconv.Itoa(id),
+	}
+
+	var resp sessionKillResp
+	err := c.Send(req, &resp)
+	if err != nil {
+		return fmt.Errorf("error sending request: %v", err)
+	}
+
+	if resp.Error {
+		return fmt.Errorf("error killing session: %s", resp.ErrorMessage)
+	}
+
+	return nil
 }

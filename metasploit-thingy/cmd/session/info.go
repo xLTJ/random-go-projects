@@ -10,7 +10,7 @@ import (
 )
 
 var infoCmd = &cobra.Command{
-	Use:   "info <session id>",
+	Use:   "info <session_id>",
 	Short: "Show detailed session information",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {

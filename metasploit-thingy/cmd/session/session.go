@@ -16,4 +16,5 @@ var SessionCmd = &cobra.Command{
 
 func init() {
 	SessionCmd.AddCommand(infoCmd)
+	SessionCmd.AddCommand(killCmd)
 }

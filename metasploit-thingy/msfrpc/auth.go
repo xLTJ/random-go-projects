@@ -10,10 +10,9 @@ type loginReq struct {
 }
 
 type loginResp struct {
-	Result     string `msgpack:"result"`
-	Token      string `msgpack:"token"`
-	Error      bool   `msgpack:"error"`
-	ErrorClass string `msgpack:"error_class"`
+	Result string `msgpack:"result"`
+	Token  string `msgpack:"token"`
+	errorResp
 }
 
 type logoutReq struct {
@@ -41,7 +40,7 @@ func (c Client) Login() (string, error) {
 	}
 
 	if resp.Error {
-		return "", fmt.Errorf("Error logging in (probably invalid credentials): %v\n", resp.ErrorClass)
+		return "", fmt.Errorf("Error logging in (probably invalid credentials): %v\n", resp.ErrorMessage)
 	}
 
 	return resp.Token, nil
