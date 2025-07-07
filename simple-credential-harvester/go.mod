@@ -1,4 +1,4 @@
-module fake-roundcube
+module simple-credential-harvester
 
 go 1.24
 

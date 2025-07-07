@@ -22,7 +22,7 @@ func main() {
 	r.Post("/login", login)
 	r.Handle("/", http.FileServer(http.Dir("public")))
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", r))
 }
 
 func login(writer http.ResponseWriter, req *http.Request) {
