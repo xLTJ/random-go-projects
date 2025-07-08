@@ -5,8 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5381ae0d-1932-43c5-b3f4-08fb7f89de63" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../simple-credential-harvester/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../simple-credential-harvester/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../simple-credential-harvester/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/../simple-credential-harvester/main.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/cmd/root.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/go.mod" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/logger.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../key-logger-thing/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
