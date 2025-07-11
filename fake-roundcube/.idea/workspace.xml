@@ -5,6 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5381ae0d-1932-43c5-b3f4-08fb7f89de63" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../dns-stuff/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../dns-stuff/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/cmd/search.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/cmd/set.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/dnsStuff/dnsStuff.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../subdomain-enumerator/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../dns-stuff/.idea/discord.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../dns-stuff/.idea/discord.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
