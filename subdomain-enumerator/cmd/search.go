@@ -2,14 +2,19 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"github.com/cheynewallace/tabby"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
+	"io"
 	"os"
 	"subdomain-enumerator/dnsStuff"
 	"sync"
 )
+
+var showProgress bool // for flag
 
 var searchCmd = &cobra.Command{
 	Use:   "search <domain>",
@@ -38,28 +43,25 @@ var searchCmd = &cobra.Command{
 		performSearch(domain, wordlistFile, resultsChan)
 
 		// output result
-		fmt.Printf("\nResults\n")
-		for results := range resultsChan {
-			for _, result := range results {
-				fmt.Printf("%s %s\n", result.Hostname, result.IPAddress)
-			}
+		if showProgress {
+			displayResultWithProgress(wordlistFile, resultsChan)
+			return nil
 		}
 
+		displayResult(resultsChan)
 		return nil
 	},
 }
 
 func init() {
-	searchCmd.Flags().StringP("wordlist", "w", "", "wordlist to use")
-	searchCmd.Flags().StringP("server", "s", "", "dns server to use")
-	searchCmd.Flags().IntP("workers", "n", 0, "amount of workers to use")
+	configFlagSet := pflag.NewFlagSet("config", pflag.PanicOnError)
+	configFlagSet.StringP("wordlist", "w", "", "wordlist to use")
+	configFlagSet.StringP("server", "s", "", "dns server to use")
+	configFlagSet.IntP("workers", "n", 0, "amount of workers to use")
 
-	cobra.CheckErr(
-		viper.BindPFlag("wordlist", searchCmd.Flags().Lookup("wordlist")))
-	cobra.CheckErr(
-		viper.BindPFlag("server", searchCmd.Flags().Lookup("server")))
-	cobra.CheckErr(
-		viper.BindPFlag("workers", searchCmd.Flags().Lookup("workers")))
+	cobra.CheckErr(viper.BindPFlags(configFlagSet))
+	searchCmd.Flags().AddFlagSet(configFlagSet)
+	searchCmd.Flags().BoolVarP(&showProgress, "showProgress", "p", false, "show progress")
 }
 
 func displayInfo() {
@@ -81,13 +83,14 @@ func openWordlist() (*os.File, error) {
 }
 
 func performSearch(domain string, wordlistFile *os.File, resultsChan chan []dnsStuff.Result) {
+	workerCount := viper.GetInt("workers")
+	serverAddr := viper.GetString("server")
 	fqdnChan := make(chan string)
 	var wg sync.WaitGroup
 
-	workerCount := viper.GetInt("workers")
 	for w := 0; w < workerCount; w++ {
 		wg.Add(1)
-		go worker(fqdnChan, resultsChan, viper.GetString("server"), &wg)
+		go worker(fqdnChan, resultsChan, serverAddr, &wg)
 	}
 
 	// add fqdns to test
@@ -118,21 +121,49 @@ func worker(fqdnChan <-chan string, resultsChan chan<- []dnsStuff.Result, server
 	wg.Done()
 }
 
-//func countLines(file *os.File) (int, error) {
-//	buf := make([]byte, 32*1024) // 32KB buffer
-//	count := 0
-//	lineSep := []byte{'\n'}
-//
-//	for {
-//		c, err := file.Read(buf)
-//		count += bytes.Count(buf[:c], lineSep)
-//
-//		switch {
-//		case err == io.EOF:
-//			_, _ = file.Seek(0, 0)
-//			return count, nil
-//		case err != nil:
-//			return count, err
-//		}
-//	}
-//}
+func displayResultWithProgress(wordlistFile *os.File, resultsChan chan []dnsStuff.Result) {
+	fmt.Printf("\nResults\n----------------\n")
+	totalLines, err := countLines(wordlistFile)
+	if err != nil {
+		fmt.Printf("Unable to count total lines")
+	}
+
+	currentLine := 0
+	for results := range resultsChan {
+		currentLine++
+		fmt.Printf("\r")
+
+		for _, result := range results {
+			fmt.Printf("%-15s  <-  %s\n", result.IPAddress, result.Hostname)
+		}
+		fmt.Printf("%d/%d", currentLine, totalLines)
+	}
+}
+
+func displayResult(resultsChan chan []dnsStuff.Result) {
+	fmt.Printf("\nResults\n----------------\n")
+	for results := range resultsChan {
+		for _, result := range results {
+			fmt.Printf("%-15s  <-  %s\n", result.IPAddress, result.Hostname)
+		}
+	}
+}
+
+func countLines(file *os.File) (int, error) {
+	buf := make([]byte, 32*1024) // 32KB buffer
+	count := 0
+	lineSep := []byte{'\n'}
+
+	for {
+		c, err := file.Read(buf)
+		count += bytes.Count(buf[:c], lineSep)
+
+		switch {
+		case err == io.EOF:
+			_, _ = file.Seek(0, 0)
+			return count, nil
+		case err != nil:
+			return 0, err
+		}
+	}
+}
