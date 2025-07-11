@@ -6,25 +6,27 @@ import (
 	"fmt"
 	"github.com/cheynewallace/tabby"
 	"github.com/spf13/cobra"
-	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	"io"
+	"log"
+	"net"
 	"os"
 	"subdomain-enumerator/dnsStuff"
 	"sync"
 )
 
-var showProgress bool // for flag
+var showProgress bool
 
 var searchCmd = &cobra.Command{
 	Use:   "search <domain>",
 	Short: "perform a search for a domain",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		domain := args[0]
+
 		if !viper.IsSet("wordlist") {
 			return fmt.Errorf("wordlist missing")
 		}
-		domain := args[0]
 
 		displayInfo()
 
@@ -54,14 +56,14 @@ var searchCmd = &cobra.Command{
 }
 
 func init() {
-	configFlagSet := pflag.NewFlagSet("config", pflag.PanicOnError)
-	configFlagSet.StringP("wordlist", "w", "", "wordlist to use")
-	configFlagSet.StringP("server", "s", "", "dns server to use")
-	configFlagSet.IntP("workers", "n", 0, "amount of workers to use")
-
-	cobra.CheckErr(viper.BindPFlags(configFlagSet))
-	searchCmd.Flags().AddFlagSet(configFlagSet)
+	searchCmd.Flags().StringP("wordlist", "w", "", "wordlist to use")
+	searchCmd.Flags().StringSliceP("servers", "s", nil, "dns server to use")
+	searchCmd.Flags().IntP("workers", "n", 10, "amount of workers to use")
 	searchCmd.Flags().BoolVarP(&showProgress, "showProgress", "p", false, "show progress")
+
+	cobra.CheckErr(viper.BindPFlag("wordlist", searchCmd.Flags().Lookup("wordlist")))
+	cobra.CheckErr(viper.BindPFlag("servers", searchCmd.Flags().Lookup("servers")))
+	cobra.CheckErr(viper.BindPFlag("workers", searchCmd.Flags().Lookup("workers")))
 }
 
 func displayInfo() {
@@ -84,13 +86,21 @@ func openWordlist() (*os.File, error) {
 
 func performSearch(domain string, wordlistFile *os.File, resultsChan chan []dnsStuff.Result) {
 	workerCount := viper.GetInt("workers")
-	serverAddr := viper.GetString("server")
+	servers := viper.GetStringSlice("servers")
 	fqdnChan := make(chan string)
 	var wg sync.WaitGroup
 
 	for w := 0; w < workerCount; w++ {
 		wg.Add(1)
-		go worker(fqdnChan, resultsChan, serverAddr, &wg)
+		serverAddr := servers[w%len(servers)] + ":53"
+
+		conn, err := net.Dial("udp", serverAddr)
+		if err != nil {
+			_, _ = fmt.Fprintf(os.Stderr, "error setting up connection: %v", err)
+		}
+
+		go worker(fqdnChan, resultsChan, &wg, conn)
+		log.Printf("worker %d using %s", w, serverAddr) // debug
 	}
 
 	// add fqdns to test
@@ -109,9 +119,9 @@ func performSearch(domain string, wordlistFile *os.File, resultsChan chan []dnsS
 	}()
 }
 
-func worker(fqdnChan <-chan string, resultsChan chan<- []dnsStuff.Result, serverAddr string, wg *sync.WaitGroup) {
+func worker(fqdnChan <-chan string, resultsChan chan<- []dnsStuff.Result, wg *sync.WaitGroup, conn net.Conn) {
 	for fqdn := range fqdnChan {
-		results, err := dnsStuff.Lookup(fqdn, serverAddr)
+		results, err := dnsStuff.Lookup(fqdn, conn)
 		if err != nil {
 			_, _ = fmt.Fprintf(os.Stderr, "%v\n", err)
 		}
