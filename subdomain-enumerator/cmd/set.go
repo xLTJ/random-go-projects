@@ -17,12 +17,15 @@ var setCmd = &cobra.Command{
 			if flag.Name == "help" || !flag.Changed {
 				return
 			}
+
+			viper.Set(flag.Name, flag.Value)
 			fmt.Printf("%s - updated to %v\n", flag.Name, flag.Value)
 		})
 
 		if err := viper.WriteConfig(); err != nil {
 			return fmt.Errorf("failed to write to config: %v", err)
 		}
+
 		fmt.Println("\nConfig successfully updated")
 		return nil
 	},
@@ -30,9 +33,7 @@ var setCmd = &cobra.Command{
 
 func init() {
 	setCmd.Flags().String("wordlist", "", "set wordlist")
-	setCmd.Flags().StringSlice("servers", nil, "set dns server to use")
+	setCmd.Flags().String("server", "", "set dns server to use")
 	setCmd.Flags().Int("workers", 1, "set how many workers to use")
-	setCmd.MarkFlagsOneRequired("wordlist", "servers", "workers")
-
-	cobra.CheckErr(viper.BindPFlags(setCmd.Flags()))
+	setCmd.MarkFlagsOneRequired("wordlist", "server", "workers")
 }

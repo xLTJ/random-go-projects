@@ -47,7 +47,7 @@ func initConfig() {
 // createConfig creates a new config file
 func createConfig() {
 	viper.Set("workers", 10)
-	viper.Set("servers", []string{"8.8.8.8:53"})
+	viper.Set("server", "8.8.8.8:53")
 
 	if err := viper.SafeWriteConfig(); err != nil {
 		if os.IsExist(err) {

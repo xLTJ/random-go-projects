@@ -57,13 +57,16 @@ var searchCmd = &cobra.Command{
 
 func init() {
 	searchCmd.Flags().StringP("wordlist", "w", "", "wordlist to use")
-	searchCmd.Flags().StringSliceP("servers", "s", nil, "dns server to use")
-	searchCmd.Flags().IntP("workers", "n", 10, "amount of workers to use")
-	searchCmd.Flags().BoolVarP(&showProgress, "showProgress", "p", false, "show progress")
+	searchCmd.Flags().StringP("server", "s", "", "dns server to use")
+	searchCmd.Flags().IntP("workers", "n", 0, "amount of workers to use")
+	searchCmd.Flags().BoolVarP(&showProgress, "progress", "p", false, "show progress")
 
-	cobra.CheckErr(viper.BindPFlag("wordlist", searchCmd.Flags().Lookup("wordlist")))
-	cobra.CheckErr(viper.BindPFlag("servers", searchCmd.Flags().Lookup("servers")))
-	cobra.CheckErr(viper.BindPFlag("workers", searchCmd.Flags().Lookup("workers")))
+	cobra.CheckErr(
+		viper.BindPFlag("wordlist", searchCmd.Flags().Lookup("wordlist")))
+	cobra.CheckErr(
+		viper.BindPFlag("server", searchCmd.Flags().Lookup("server")))
+	cobra.CheckErr(
+		viper.BindPFlag("workers", searchCmd.Flags().Lookup("workers")))
 }
 
 func displayInfo() {
@@ -86,13 +89,12 @@ func openWordlist() (*os.File, error) {
 
 func performSearch(domain string, wordlistFile *os.File, resultsChan chan []dnsStuff.Result) {
 	workerCount := viper.GetInt("workers")
-	servers := viper.GetStringSlice("servers")
+	serverAddr := viper.GetString("server")
 	fqdnChan := make(chan string)
 	var wg sync.WaitGroup
 
 	for w := 0; w < workerCount; w++ {
 		wg.Add(1)
-		serverAddr := servers[w%len(servers)] + ":53"
 
 		conn, err := net.Dial("udp", serverAddr)
 		if err != nil {
